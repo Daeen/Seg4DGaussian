@@ -114,7 +114,7 @@ python extract_masks.py --img_path data/immersive/<NAME>/images_2x --output data
 
 ### Technicolor Light Field
 
-Please contact the author from "Dataset and Pipeline for Multi-View Light-Field Video" for access. We use the undistorted data from Birthday, Fabien, Train, and Theater.
+Please contact the author from "Dataset and Pipeline for Multi-View Light-Field Video" for access. We use the undistorted data from Birthday, Fabien, Painter, and Theater.
 
 For generating initial point cloud. Make sure you have COLMAP installed. We use COLMAP 3.9.1.
 
