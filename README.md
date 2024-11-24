@@ -1,5 +1,12 @@
 # SADG: Segment Any Dynamic Gaussians Without Object Trackers
 
+## [Project page](https://yunjinli.github.io/project-sadg/) | [Paper]()
+
+## News
+
+- 2024/11/24: We released the [website](https://yunjinli.github.io/project-sadg/) for SADG
+- 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later.
+
 ## Introduction
 
 We introduce SADG, Segment Any Dynamic Gaussian Without Object Trackers, a novel approach that combines dynamic Gaussian Splatting representation and semantic information without reliance on object IDs. We propose to learn semantically-aware features by leveraging masks generated from the Segment Anything Model (SAM) and utilizing our novel contrastive learning objective based on hard pixel mining. The learned Gaussian features can be effectively clustered without further post-processing. This enables fast computation for further object-level editing, such as object removal, composition, and style transfer by manipulating the Gaussians in the scene. Due to the lack of consistent evaluation protocol, we extend several dynamic novel-view datasets with segmentation benchmarks that allow testing of learned feature fields from unseen viewpoints. We evaluate SADG on proposed benchmarks and demonstrate the superior performance of our approach in segmenting objects within dynamic scenes along with its effectiveness for further downstream editing tasks.
