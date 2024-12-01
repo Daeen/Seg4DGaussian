@@ -13,7 +13,7 @@ python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_imag
 - Select different rendering modes ( `Render, Rendered Features, Gaussian Features, Gaussian Clusters, Segmentation, Point Cloud, Depth` ) in the combo box
 - Please make sure to run `Clustering` before rendering the in `Gaussian Clusters, Segmentation` mode
 
-https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_modes.mp4
+https://github.com/user-attachments/assets/c4781799-50ef-4897-9ff8-da13786271bf
 
 ## Click Prompt
 
