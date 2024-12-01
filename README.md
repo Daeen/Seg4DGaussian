@@ -13,7 +13,7 @@ We introduce SADG, Segment Any Dynamic Gaussian Without Object Trackers, a novel
 
 ![teaser](assets/teaser.jpg)
 
-<!-- ![demo](assets/split-cookie-2x4x.mp4) -->
+![demo](assets/split-cookie-2x4x.mp4)
 
 <!-- ![demo](assets/split-cookie-2x4x.mp4) -->
 
@@ -49,162 +49,70 @@ Note: If you have error from Grounding-DINO: `TypeError: annotate() got an unexp
 pip install supervision==0.21.0
 ```
 
-## Download and Process the Dataset
+## Dataset Prepareation
 
-### NeRF-DS
-
-```
-cd data/NeRF-DS
-bash download_dataset.bash
-```
-
-For generating the anything-masks from SAM.
-
-```
-python extract_masks.py --img_path data/NeRF-DS/<NAME>/rgb/2x --output data/NeRF-DS/<NAME> --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 2
-```
-
-### HyperNeRF
-
-```
-cd data/HyperNeRF
-bash download_dataset.bash
-```
-
-For generating the anything-masks from SAM.
-
-```
-python extract_masks.py --img_path data/HyperNeRF/<interp/misc>/<NAME>/rgb/2x --output data/NeRF-DS/<NAME> --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 2
-```
-
-### Neu3D
-
-```
-cd data/Neu3D
-bash download_dataset.bash
-```
-
-For generating initial point cloud. Make sure you have COLMAP installed. We use COLMAP 3.9.1.
-
-```
-python n3v2blender.py --path data/Neu3D/<NAME> --scale 2
-```
-
-For generating the anything-masks from SAM.
-
-```
-python extract_masks.py --img_path data/Neu3D/<NAME>/images_2x --output data/Neu3D/<NAME> --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 4 --neu3d
-```
-
-### Google Immersive
-
-Download the dataset from [here](https://github.com/augmentedperception/deepview_video_dataset). Note that we only use 01_Welder, 02_Flames, 10_Alexa_Meade_Face_Paint_1, and 11_Alexa_Meade_Face_Paint_2.
-
-For generating initial point cloud. Make sure you have COLMAP installed. We use COLMAP 3.9.1.
-
-```
-python immersive2blender.py --path data/immersive/<NAME> --scale 2
-```
-
-For generating the anything-masks from SAM.
-
-```
-python extract_masks.py --img_path data/immersive/<NAME>/images_2x --output data/immersive/<NAME> --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 4 --neu3d
-```
-
-### Technicolor Light Field
-
-Please contact the author from "Dataset and Pipeline for Multi-View Light-Field Video" for access. We use the undistorted data from Birthday, Fabien, Painter, and Theater.
-
-For generating initial point cloud. Make sure you have COLMAP installed. We use COLMAP 3.9.1.
-
-```
-python technocolor2blender.py --path data/technicolor/Undistorted/<NAME> --scale 2
-```
-
-For generating the anything-masks from SAM.
-
-```
-python extract_masks.py --img_path data/technicolor/Undistorted/<NAME>/images_2x --output data/technicolor/Undistorted/<NAME> --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 2 --neu3d
-```
+See [here](./docs/prepare_dataset.md)
 
 ## Train
 
-### NeRF-DS
-
-```
-python train.py -s data/NeRF-DS/<NAME> -m output/NeRF-DS/<NAME> --warm_up 3000 --warm_up_3d_features 15000 --iterative_opt_interval 20000 --iterations 30000 --test_iterations 10000 15000 20000 30000 --save_iterations 20000 30000 --monitor_mem --densify_until_iter 15000 --lambda_reg_deform 0.0 --eval --load2gpu_on_the_fly --num_sampled_pixels 5000 --reg3d_interval -1 --num_sampled_masks 25 --smooth_K 16
-
-```
-
-### HyperNeRF
-
-```
-python train.py -s data/HyperNeRF/<interp/misc>/<NAME> -m output/HyperNeRF/<NAME> --warm_up 1500 --warm_up_3d_features 15000 --iterative_opt_interval 20000 --iterations 30000 --test_iterations 10000 15000 20000 30000 --save_iterations 20000 30000 --monitor_mem --densify_until_iter 9000 --lambda_reg_deform 0.0 --eval --load2gpu_on_the_fly --num_sampled_pixels 5000 --reg3d_interval -1 --num_sampled_masks 25 --smooth_K 16
-```
-
-### Neu3D
-
-```
-python train_multiview.py    -s data/Neu3D/<NAME> -m output/Neu3D/<NAME> --warm_up 3000 --warm_up_3d_features 15000 --iterative_opt_interval 20000 --iterations 30000 --test_iterations 10000 15000 20000 30000 --save_iterations 10000 15000 20000 30000 --monitor_mem --densify_until_iter 8000 --lambda_reg_deform 0 --eval --load2gpu_on_the_fly --num_sampled_pixels 10000 --reg3d_interval -1 --num_sampled_masks 50 --smooth_K 16 --load_mask_on_the_fly --load_image_on_the_fly ## For multiview dataset, it's supported to load images and anything-masks on-the-fly to reduce RAM usage
-```
-
-### Immerseve
-
-```
-python train_multiview.py    -s data/immersive/<NAME> -m output/immersive/<NAME> --warm_up 1500 --warm_up_3d_features 15000 --iterative_opt_interval 20000 --iterations 30000 --test_iterations 10000 15000 20000 30000 --save_iterations 10000 15000 20000 30000 --monitor_mem --densify_until_iter 3000 --lambda_reg_deform 0 --eval --load2gpu_on_the_fly --num_sampled_pixels 10000 --reg3d_interval -1 --num_sampled_masks 50 --end_frame 50 --load_mask_on_the_fly --load_image_on_the_fly ## For multiview dataset, it's supported to load images and anything-masks on-the-fly to reduce RAM usage
-```
-
-### Technicolor
-
-```
-python train_multiview.py    -s data/technicolor/Undistorted/<NAME> -m output/technicolor/<NAME> --warm_up 3000 --warm_up_3d_features 15000 --iterative_opt_interval 20000 --iterations 30000 --test_iterations 10000 15000 20000 30000 --save_iterations 10000 15000 20000 30000 --monitor_mem --densify_until_iter 5000 --lambda_reg_deform 0 --eval --load2gpu_on_the_fly --num_sampled_pixels 10000 --reg3d_interval -1 --num_sampled_masks 50 --load_mask_on_the_fly --load_image_on_the_fly ## For multiview dataset, it's supported to load images and anything-masks on-the-fly to reduce RAM usage
-```
+See [here](./docs/train.md)
 
 ## GUI
 
-We attach tutorial of our GUI in the supplementary.
-
-```
-python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_image_on_the_fly --eval --load2gpu_on_the_fly --is_testing --end_frame -1 --iteration 30000 ## For immersive --end_frame 50
-```
+See [here](./docs/gui.md)
 
 ## Render
 
-### Render all
+See [here](./docs/render.md)
+
+## Scene Editing Application
+
+See [here](./docs/editing.md)
+
+## Evaluation on our Mask-Benchmarks
+
+See [here](./docs/evaluation.md)
+
+## Acknowledgement
+
+Thank the authors from 3D Gaussian Splatting, Deformable 3D Gaussians, Gaussian Grouping, SAGA for sharing their amazing works to promote further research in this area. Consider also citing their paper:
 
 ```
-python render.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_image_on_the_fly --eval --load2gpu_on_the_fly --is_testing --end_frame -1 --skip_train--iteration 30000 ## For immersive --end_frame 50
+@Article{kerbl3Dgaussians,
+      author       = {Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
+      title        = {3D Gaussian Splatting for Real-Time Radiance Field Rendering},
+      journal      = {ACM Transactions on Graphics},
+      number       = {4},
+      volume       = {42},
+      month        = {July},
+      year         = {2023},
+      url          = {https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/}
+}
 ```
 
-### Render with text prompt
-
 ```
-python render.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_image_on_the_fly --eval --load2gpu_on_the_fly --is_testing --end_frame -1 --skip_train--iteration 30000 --text_prompt "TEXT_PROMPT" ## For immersive --end_frame 50
-```
-
-### Render with cluster ID
-
-When you click the object in the GUI. You can see which cluster IDs are segemented.
-
-```
-python render.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_image_on_the_fly --eval --load2gpu_on_the_fly --is_testing --end_frame -1 --skip_train --iteration 30000 --segment_ids <1> <2> <...> ## For immersive --end_frame 50
+@article{yang2023deformable3dgs,
+    title={Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction},
+    author={Yang, Ziyi and Gao, Xinyu and Zhou, Wen and Jiao, Shaohui and Zhang, Yuqing and Jin, Xiaogang},
+    journal={arXiv preprint arXiv:2309.13101},
+    year={2023}
+}
 ```
 
-## Style Transfer
-
-Style Transfer of the selected object (segment_ids).
+```
+@inproceedings{gaussian_grouping,
+    title={Gaussian Grouping: Segment and Edit Anything in 3D Scenes},
+    author={Ye, Mingqiao and Danelljan, Martin and Yu, Fisher and Ke, Lei},
+    booktitle={ECCV},
+    year={2024}
+}
+```
 
 ```
-python train_style_transfer_nnfm.py -s data/<DATASET>/<NAME> -m output/<DATASET>/<NAME> --load2gpu_on_the_fly --end_frame -1 --load_mask_on_the_fly --load_image_on_the_fly --load_iteration 30000 --iterations 35000 --eval --monitor_mem --save_iterations 35000 --segment_ids <0> <1> <...> --reference_img_path ./styles/<picture>.png
-```
-
-## Evaluation
-
-We plan to release our Mask-Benchmarks upon acceptance.
-
-Run the following command to compute the mIoU and mAcc respected to our benchmarks.
-
-```
-python metrics_segmentation.py -m output/<DATASET>/<NAME> --no_psnr
+@article{cen2023saga,
+      title={Segment Any 3D Gaussians},
+      author={Jiazhong Cen and Jiemin Fang and Chen Yang and Lingxi Xie and Xiaopeng Zhang and Wei Shen and Qi Tian},
+      year={2023},
+      journal={arXiv preprint arXiv:2312.00860},
+}
 ```
