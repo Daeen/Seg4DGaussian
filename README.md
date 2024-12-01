@@ -71,7 +71,7 @@ See [here](./docs/evaluation.md)
 
 ## Acknowledgement
 
-Thank the authors from 3D Gaussian Splatting, Deformable 3D Gaussians, Gaussian Grouping, SAGA for sharing their amazing works to promote further research in this area. Consider also citing their paper:
+We appreciate all the authors from 3D Gaussian Splatting, Deformable 3D Gaussians, Gaussian Grouping, SAGA for sharing their amazing works to promote further research in this area. Consider also citing their paper.
 
 ```
 @Article{kerbl3Dgaussians,

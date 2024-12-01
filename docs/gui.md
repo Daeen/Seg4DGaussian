@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/5c787cd5-8d78-44bc-87da-a6319105efc6
 
 ## Acknowledgement
 
-We thanks the authors from [Deformable-3D-Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians) for sharing their amazing work. Our GUI is built upon their code. Please consider also citing their paper.
+We appreciate the authors from [Deformable-3D-Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians) for sharing their amazing work. Our GUI is built upon their code. Please consider also citing their paper.
 
 ```
 @article{yang2023deformable3dgs,
