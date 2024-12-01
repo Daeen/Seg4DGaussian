@@ -22,9 +22,8 @@ https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gu
 - Hold the key `A` and `Left-Click` on the object of interest in the novel view
 - Hold the key `D` and `Left-Click` to deselect the click
 - Drag the slider of `Score Threshold` to adjust the threshold for filtering unwanted Gaussians
--
 
-https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_click_prompt.mp4
+https://github.com/user-attachments/assets/54c468c5-476e-44de-a5e4-4d51c3e403c3
 
 ## Text Prompt
 
@@ -32,7 +31,7 @@ https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gu
 - Enter the text prompt and click `Enter`
 - Click `Remove Object` to toggle the visibility of the selected objects (selected / removal)
 
-https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_text_prompt.mp4
+https://github.com/user-attachments/assets/5c787cd5-8d78-44bc-87da-a6319105efc6
 
 ## Other Buttons
 
