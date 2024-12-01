@@ -13,7 +13,13 @@ We introduce SADG, Segment Any Dynamic Gaussian Without Object Trackers, a novel
 
 ![teaser](assets/teaser.jpg)
 
-![demo](assets/split-cookie-2x4x.mp4)
+<!-- ![demo](assets/split-cookie-2x4x.mp4) -->
+
+<!-- [![Watch the video]()](https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/split-cookie-2x4x.mp4) -->
+<video autoplay loop muted playsinline>
+  <source src="assets/split-cookie-2x4x.mp4" type="video/mp4">
+</video>
+<!-- <video autoplay loop playsinline src='assets/split-cookie-2x4x.mp4' /> -->
 
 <!-- ![demo](assets/split-cookie-2x4x.mp4) -->
 
