@@ -13,10 +13,7 @@ python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_imag
 - Select different rendering modes ( `Render, Rendered Features, Gaussian Features, Gaussian Clusters, Segmentation, Point Cloud, Depth` ) in the combo box
 - Please make sure to run `Clustering` before rendering the in `Gaussian Clusters, Segmentation` mode
 
-<!-- ![demo_modes](../assets/gui_demo_modes.mp4) -->
-<video autoplay loop muted playsinline>
-  <source src="../assets/gui_demo_modes.mp4" type="video/mp4">
-</video>
+https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_modes.mp4
 
 ## Click Prompt
 
@@ -27,11 +24,7 @@ python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_imag
 - Drag the slider of `Score Threshold` to adjust the threshold for filtering unwanted Gaussians
 -
 
-<!-- ![demo_modes](../assets/gui_demo_click_prompt) -->
-
-<video autoplay loop muted playsinline>
-  <source src="../assets/gui_demo_click_prompt.mp4" type="video/mp4">
-</video>
+https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_click_prompt.mp4
 
 ## Text Prompt
 
@@ -39,10 +32,7 @@ python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_imag
 - Enter the text prompt and click `Enter`
 - Click `Remove Object` to toggle the visibility of the selected objects (selected / removal)
 
-<!-- ![demo_modes](../assets/gui_demo_text_prompt) -->
-<video autoplay loop muted playsinline>
-  <source src="../assets/gui_demo_text_prompt.mp4" type="video/mp4">
-</video>
+https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian/blob/master/assets/gui_demo_text_prompt.mp4
 
 ## Other Buttons
 
