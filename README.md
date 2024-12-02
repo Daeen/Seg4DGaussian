@@ -1,6 +1,6 @@
 # SADG: Segment Any Dynamic Gaussians Without Object Trackers
 
-## [Project page](https://yunjinli.github.io/project-sadg/) | [Paper]()
+## [Project page](https://yunjinli.github.io/project-sadg/) | [Paper](https://arxiv.org/abs/2411.19290)
 
 ## News
 
