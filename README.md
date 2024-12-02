@@ -69,9 +69,23 @@ See [here](./docs/editing.md)
 
 See [here](./docs/evaluation.md)
 
+## BibTex
+
+```
+@misc{li2024sadgsegmentdynamicgaussian,
+      title={SADG: Segment Any Dynamic Gaussian Without Object Trackers},
+      author={Yun-Jin Li and Mariia Gladkova and Yan Xia and Daniel Cremers},
+      year={2024},
+      eprint={2411.19290},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2411.19290},
+}
+```
+
 ## Acknowledgement
 
-We appreciate all the authors from 3D Gaussian Splatting, Deformable 3D Gaussians, Gaussian Grouping, SAGA for sharing their amazing works to promote further research in this area. Consider also citing their paper.
+We appreciate all the authors from [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting),[Deformable 3D Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians), [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping), [SAGA](https://github.com/Jumpat/SegAnyGAussians) for sharing their amazing works to promote further research in this area. Consider also citing their paper.
 
 ```
 @Article{kerbl3Dgaussians,
