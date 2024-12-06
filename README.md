@@ -5,7 +5,7 @@
 ## News
 
 - 2024/11/24: We released the [website](https://yunjinli.github.io/project-sadg/) for SADG
-- 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later.
+- 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later. If you would like to compare your method against SADG now, please contact the first author via email (yunjin.li@tum.de).
 
 ## Introduction
 
@@ -72,20 +72,17 @@ See [here](./docs/evaluation.md)
 ## BibTex
 
 ```
-@misc{li2024sadgsegmentdynamicgaussian,
-      title={SADG: Segment Any Dynamic Gaussian Without Object Trackers},
-      author={Yun-Jin Li and Mariia Gladkova and Yan Xia and Daniel Cremers},
-      year={2024},
-      eprint={2411.19290},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2411.19290},
+@article{li2024sadg,
+    title={SADG: Segment Any Dynamic Gaussian Without Object Trackers},
+    author={Li, Yun-Jin and Gladkova, Mariia and Xia, Yan and Cremers, Daniel},
+    journal={arXiv preprint arXiv:2411.19290},
+    year={2024}
 }
 ```
 
 ## Acknowledgement
 
-We appreciate all the authors from [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting),[Deformable 3D Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians), [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping), [SAGA](https://github.com/Jumpat/SegAnyGAussians) for sharing their amazing works to promote further research in this area. Consider also citing their paper.
+We appreciate all the authors from [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), [Deformable 3D Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians), [SC-GS](https://github.com/yihua7/SC-GS), [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping), [SAGA](https://github.com/Jumpat/SegAnyGAussians) for sharing their amazing works to promote further research in this area. Consider also citing their paper.
 
 ```
 @Article{kerbl3Dgaussians,
@@ -105,6 +102,15 @@ We appreciate all the authors from [3D Gaussian Splatting](https://github.com/gr
     title={Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction},
     author={Yang, Ziyi and Gao, Xinyu and Zhou, Wen and Jiao, Shaohui and Zhang, Yuqing and Jin, Xiaogang},
     journal={arXiv preprint arXiv:2309.13101},
+    year={2023}
+}
+```
+
+```
+@article{huang2023sc,
+    title={SC-GS: Sparse-Controlled Gaussian Splatting for Editable Dynamic Scenes},
+    author={Huang, Yi-Hua and Sun, Yang-Tian and Yang, Ziyi and Lyu, Xiaoyang and Cao, Yan-Pei and Qi, Xiaojuan},
+    journal={arXiv preprint arXiv:2312.14937},
     year={2023}
 }
 ```

@@ -42,13 +42,13 @@ https://github.com/user-attachments/assets/5c787cd5-8d78-44bc-87da-a6319105efc6
 
 ## Acknowledgement
 
-We appreciate the authors from [Deformable-3D-Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians) for sharing their amazing work. Our GUI is built upon their code. Please consider also citing their paper.
+We appreciate the authors from [SC-GS](https://github.com/yihua7/SC-GS) for sharing their amazing work. Our GUI is built upon their code. Please consider also citing their paper.
 
 ```
-@article{yang2023deformable3dgs,
-    title={Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction},
-    author={Yang, Ziyi and Gao, Xinyu and Zhou, Wen and Jiao, Shaohui and Zhang, Yuqing and Jin, Xiaogang},
-    journal={arXiv preprint arXiv:2309.13101},
+@article{huang2023sc,
+    title={SC-GS: Sparse-Controlled Gaussian Splatting for Editable Dynamic Scenes},
+    author={Huang, Yi-Hua and Sun, Yang-Tian and Yang, Ziyi and Lyu, Xiaoyang and Cao, Yan-Pei and Qi, Xiaojuan},
+    journal={arXiv preprint arXiv:2312.14937},
     year={2023}
 }
 ```
