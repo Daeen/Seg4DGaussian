@@ -1142,7 +1142,7 @@ class GUI:
                         self.video_duration = dpg.get_value('_slider_duration')
                         
                 dpg.add_slider_int(
-                    label="Duration",
+                    label="Duration (sec)",
                     default_value=self.video_duration,
                     max_value=30,
                     min_value=1,

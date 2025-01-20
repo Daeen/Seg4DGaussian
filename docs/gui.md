@@ -1,6 +1,14 @@
 # Tutorial on GUI
 
-## Running the script
+## Running the Standalone GUI script
+The standalone GUI script provides the same features as the normal GUI. We provide some [example scenes](https://drive.google.com/file/d/1IJzM_lxizajQqQ0f_Hiu_IdpaRdeg1KJ/view?usp=sharing) to play with. 
+```
+### Running the standalone GUI (first download the demos.zip above and and uncompress in ./assets/)
+python gui_standalone.py -m assets/demos/<split-cookie/as_novel_view/sear_steak> --iteration 30000
+```
+As the standalone GUI doesn't have information regarding the length (in second) of the dynamic scene, this needs to be configured per scene in the GUI with the slider ```Duration (sec)```. (Default: 10 seconds)
+ 
+## Running the GUI script
 
 ```
 python gui_sadg.py -m output/<DATASET>/<NAME> --load_mask_on_the_fly --load_image_on_the_fly --eval --load2gpu_on_the_fly --iteration 30000

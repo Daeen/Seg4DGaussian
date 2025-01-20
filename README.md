@@ -4,6 +4,7 @@
 
 ## News
 
+- 2025/01/20: We released the [standalone GUI](./gui_standalone.py). 
 - 2024/11/24: We released the [website](https://yunjinli.github.io/project-sadg/) for SADG
 - 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later. If you would like to compare your method against SADG now, please contact the first author via email (yunjin.li@tum.de).
 
