@@ -1,0 +1,20 @@
+data/HyperNeRF/*
+data/NeRF-DS/*
+data/Neu3D/*
+!data/HyperNeRF/download_dataset.bash
+!data/NeRF-DS/download_dataset.bash
+!data/Neu3D/download_dataset.bash
+output/
+test/
+qualitative_results
+assets/demos/*
+submodules/diff-gaussian-rasterization/build
+submodules/simple-knn/build
+# Local History for Visual Studio Code
+.history/
+log/
+dependency/sam_vit_h_4b8939.pth
+## Python 
+__pycache__/
+## vscode
+.vscode/
