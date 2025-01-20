@@ -4,7 +4,7 @@
 
 ## News
 
-- 2025/01/20: We released the [standalone GUI](./gui_standalone.py). 
+- 2025/01/20: We released the [standalone GUI](./gui_standalone.py). See [GUI Tutorial](./docs/gui.md) for details.
 - 2024/11/24: We released the [website](https://yunjinli.github.io/project-sadg/) for SADG
 - 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later. If you would like to compare your method against SADG now, please contact the first author via email (yunjin.li@tum.de).
 
@@ -20,6 +20,7 @@ We introduce SADG, Segment Any Dynamic Gaussian Without Object Trackers, a novel
 ## Setup the environment
 git clone https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian.git
 cd SADG
+git submodule update --init --recursive
 conda create -n SADG python=3.8 -y
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117

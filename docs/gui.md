@@ -6,7 +6,7 @@ The standalone GUI script provides the same features as the normal GUI. We provi
 ### Running the standalone GUI (first download the demos.zip above and and uncompress in ./assets/)
 python gui_standalone.py -m assets/demos/<split-cookie/as_novel_view/sear_steak> --iteration 30000
 ```
-As the standalone GUI doesn't have information regarding the length (in second) of the dynamic scene, this needs to be configured per scene in the GUI with the slider ```Duration (sec)```. (Default: 10 seconds)
+As the standalone GUI doesn't have information regarding the length (in second) of the dynamic scene, this needs to be configured per scene in the GUI with the slider ```Duration (sec)``` (Default: 10 seconds). For detailed functionalities of the GUI, please see the following sections. 
  
 ## Running the GUI script
 
