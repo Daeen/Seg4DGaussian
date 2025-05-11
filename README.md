@@ -42,19 +42,19 @@ python -m pip install -e segment_anything
 python -m pip install -e GroundingDINO
 ```
 
-Note: If you have error from Grounding-DINO: `TypeError: annotate() got an unexpected keyword argument 'labels'`, install `Supervision` to the 0.21.0 version
+Note: If you have an error from Grounding-DINO: `TypeError: annotate() got an unexpected keyword argument 'labels'`, install `Supervision` to the 0.21.0 version
 
 ```
 pip install supervision==0.21.0
 ```
 
-## Dataset Prepareation
+## Dataset Preparation
 
 See [here](./docs/prepare_dataset.md)
 
 ## Train
 
-See [here](./docs/train.md)
+~~See [here](./docs/train.md)~~ (TBA)
 
 ## GUI
 
@@ -66,7 +66,7 @@ See [here](./docs/render.md)
 
 ## Scene Editing Application
 
-See [here](./docs/editing.md)
+~~See [here](./docs/editing.md)~~ (TBA)
 
 ## Evaluation on our Mask-Benchmarks
 
