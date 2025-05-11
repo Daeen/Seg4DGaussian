@@ -1,13 +1,31 @@
 # Tutorial on GUI
 
 ## Running the Standalone GUI script
-The standalone GUI script provides the same features as the normal GUI. We provide some [example scenes](https://drive.google.com/file/d/1IJzM_lxizajQqQ0f_Hiu_IdpaRdeg1KJ/view?usp=sharing) to play with. 
+
+The standalone GUI script provides the same features as the normal GUI. We provide some examples for you to play with:
+
+### Install example scenes
+
 ```
-### Running the standalone GUI (first download the demos.zip above and and uncompress in ./assets/)
-python gui_standalone.py -m assets/demos/<split-cookie/as_novel_view/sear_steak> --iteration 30000
+# Make sure git-lfs is installed (https://git-lfs.com)
+git lfs install
+# If not, then
+sudo apt-get install git-lfs
+git clone https://huggingface.co/yunjinli/sadg_example_models
+cd sadg_example_models
+git lfs pull
 ```
-As the standalone GUI doesn't have information regarding the length (in second) of the dynamic scene, this needs to be configured per scene in the GUI with the slider ```Duration (sec)``` (Default: 10 seconds). For detailed functionalities of the GUI, please see the following sections. 
- 
+
+### Run in Standalone GUI
+
+```
+python gui_standalone.py -m ./sadg_example_models/sear_steak --iteration 30000
+## Or
+python gui_standalone.py -m ./sadg_example_models/split-cookie --iteration 30000
+```
+
+As the standalone GUI doesn't have information regarding the length (in second) of the dynamic scene, this needs to be configured per scene in the GUI with the slider `Duration (sec)` (Default: 10 seconds). For detailed functionalities of the GUI, please see the following sections.
+
 ## Running the GUI script
 
 ```
