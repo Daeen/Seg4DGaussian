@@ -20,15 +20,20 @@ import os
 import time
 import torch
 from random import randint
-from utils.general_utils import safe_state
+from gaussian_renderer import render
+import sys
+from scene import Scene, GaussianModel, DeformModel
+from utils.general_utils import safe_state, get_linear_noise_func
+import uuid
 from tqdm import tqdm
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, get_combined_args, OptimizationParams
 import math
 from cam_utils import OrbitCamera
 import numpy as np
 import dearpygui.dearpygui as dpg
 import imageio
+import datetime
 from PIL import Image
 from scipy.spatial.transform import Rotation as R
 from kmeans_pytorch import kmeans
@@ -37,455 +42,15 @@ from utils.rigid_utils import from_homogenous, to_homogenous
 import torchvision
 import hdbscan
 import multiprocessing
+import concurrent.futures
 from utils.general_utils import PILtoTorch
 
-from ext.grounded_sam import grouned_sam_output, load_model_hf
+from ext.grounded_sam import grouned_sam_output, load_model_hf, select_obj_ioa
 from segment_anything import sam_model_registry, SamPredictor
 import math
 import pytorch3d.ops as ops
 from os import makedirs
 import time
-
-import torch.nn as nn
-from utils.rigid_utils import exp_se3
-from utils.system_utils import searchForMaxIteration, mkdir_p
-from utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
-from plyfile import PlyData, PlyElement
-from utils.sh_utils import RGB2SH, eval_sh
-from simple_knn._C import distCUDA2
-from utils.graphics_utils import BasicPointCloud
-from utils.general_utils import strip_symmetric, build_scaling_rotation
-
-from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianRasterizer
-
-import torch.nn.functional as F
-## ======= Deformable 3D Gaussian ======= 
-def get_embedder(multires, i=1):
-    if i == -1:
-        return nn.Identity(), 3
-
-    embed_kwargs = {
-        'include_input': True,
-        'input_dims': i,
-        'max_freq_log2': multires - 1,
-        'num_freqs': multires,
-        'log_sampling': True,
-        'periodic_fns': [torch.sin, torch.cos],
-    }
-
-    embedder_obj = Embedder(**embed_kwargs)
-    embed = lambda x, eo=embedder_obj: eo.embed(x)
-    return embed, embedder_obj.out_dim
-
-class Embedder:
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
-        self.create_embedding_fn()
-
-    def create_embedding_fn(self):
-        embed_fns = []
-        d = self.kwargs['input_dims']
-        out_dim = 0
-        if self.kwargs['include_input']:
-            embed_fns.append(lambda x: x)
-            out_dim += d
-
-        max_freq = self.kwargs['max_freq_log2']
-        N_freqs = self.kwargs['num_freqs']
-
-        if self.kwargs['log_sampling']:
-            freq_bands = 2. ** torch.linspace(0., max_freq, steps=N_freqs)
-        else:
-            freq_bands = torch.linspace(2. ** 0., 2. ** max_freq, steps=N_freqs)
-
-        for freq in freq_bands:
-            for p_fn in self.kwargs['periodic_fns']:
-                embed_fns.append(lambda x, p_fn=p_fn, freq=freq: p_fn(x * freq))
-                out_dim += d
-
-        self.embed_fns = embed_fns
-        self.out_dim = out_dim
-
-    def embed(self, inputs):
-        return torch.cat([fn(inputs) for fn in self.embed_fns], -1)
-
-class DeformNetwork(nn.Module):
-    def __init__(self, D=8, W=256, input_ch=3, output_ch=59, multires=10, is_blender=False, is_6dof=False):
-        super(DeformNetwork, self).__init__()
-        self.D = D
-        self.W = W
-        self.input_ch = input_ch
-        self.output_ch = output_ch
-        self.t_multires = 6 if is_blender else 10
-        self.skips = [D // 2]
-
-        self.embed_time_fn, time_input_ch = get_embedder(self.t_multires, 1)
-        self.embed_fn, xyz_input_ch = get_embedder(multires, 3)
-        self.input_ch = xyz_input_ch + time_input_ch
-
-        if is_blender:
-            # Better for D-NeRF Dataset
-            self.time_out = 30
-
-            self.timenet = nn.Sequential(
-                nn.Linear(time_input_ch, 256), nn.ReLU(inplace=True),
-                nn.Linear(256, self.time_out))
-
-            self.linear = nn.ModuleList(
-                [nn.Linear(xyz_input_ch + self.time_out, W)] + [
-                    nn.Linear(W, W) if i not in self.skips else nn.Linear(W + xyz_input_ch + self.time_out, W)
-                    for i in range(D - 1)]
-            )
-
-        else:
-            self.linear = nn.ModuleList(
-                [nn.Linear(self.input_ch, W)] + [
-                    nn.Linear(W, W) if i not in self.skips else nn.Linear(W + self.input_ch, W)
-                    for i in range(D - 1)]
-            )
-
-        self.is_blender = is_blender
-        self.is_6dof = is_6dof
-
-        if is_6dof:
-            self.branch_w = nn.Linear(W, 3)
-            self.branch_v = nn.Linear(W, 3)
-        else:
-            self.gaussian_warp = nn.Linear(W, 3)
-        self.gaussian_rotation = nn.Linear(W, 4)
-        self.gaussian_scaling = nn.Linear(W, 3)
-
-    def forward(self, x, t):
-        t_emb = self.embed_time_fn(t)
-        if self.is_blender:
-            t_emb = self.timenet(t_emb)  # better for D-NeRF Dataset
-        x_emb = self.embed_fn(x)
-        h = torch.cat([x_emb, t_emb], dim=-1)
-        for i, l in enumerate(self.linear):
-            h = self.linear[i](h)
-            h = F.relu(h)
-            if i in self.skips:
-                h = torch.cat([x_emb, t_emb, h], -1)
-
-        if self.is_6dof:
-            w = self.branch_w(h)
-            v = self.branch_v(h)
-            theta = torch.norm(w, dim=-1, keepdim=True)
-            w = w / theta + 1e-5
-            v = v / theta + 1e-5
-            screw_axis = torch.cat([w, v], dim=-1)
-            d_xyz = exp_se3(screw_axis, theta)
-        else:
-            d_xyz = self.gaussian_warp(h)
-        scaling = self.gaussian_scaling(h)
-        rotation = self.gaussian_rotation(h)
-        
-        return d_xyz, rotation, scaling
-    
-DeformModelType = {
-    "DeformNetwork": DeformNetwork,
-}
-
-class DeformModel:
-    def __init__(self, is_blender=False, is_6dof=False, model_type='DeformNetwork'):
-        self.deform = DeformModelType[model_type](is_blender=is_blender, is_6dof=is_6dof).cuda()
-        self.optimizer = None
-        self.model_type = model_type
-
-        self.spatial_lr_scale = 5
-            
-    def step(self, xyz, time_emb, f=None):
-        return self.deform(xyz, time_emb, f) if self.model_type == 'DeformSemanticNetwork' else self.deform(xyz, time_emb)
-
-    def load_weights(self, model_path, iteration=-1, name=None):
-        if iteration == -1:
-            loaded_iter = searchForMaxIteration(os.path.join(model_path, "deform"))
-        else:
-            loaded_iter = iteration
-        if name:
-            weights_path = os.path.join(model_path, "deform/iteration_{}/{}.pth".format(loaded_iter, name))
-        else:
-            weights_path = os.path.join(model_path, "deform/iteration_{}/deform.pth".format(loaded_iter))
-        self.deform.load_state_dict(torch.load(weights_path))
-## ===============================================
-
-## ======= Gaussian Model =======
-class GaussianModel:
-
-    def setup_functions(self):
-        def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
-            L = build_scaling_rotation(scaling_modifier * scaling, rotation)
-            actual_covariance = L @ L.transpose(1, 2)
-            symm = strip_symmetric(actual_covariance)
-            return symm
-        
-        self.scaling_activation = torch.exp
-        self.scaling_inverse_activation = torch.log
-
-        self.covariance_activation = build_covariance_from_scaling_rotation
-
-        self.opacity_activation = torch.sigmoid
-        self.inverse_opacity_activation = inverse_sigmoid
-
-        self.rotation_activation = torch.nn.functional.normalize
-
-    def __init__(self, sh_degree : int):
-        self.active_sh_degree = 0
-        self.max_sh_degree = sh_degree  
-        self._xyz = torch.empty(0)
-        self._features_dc = torch.empty(0)
-        self._features_rest = torch.empty(0)
-        self._scaling = torch.empty(0)
-        self._rotation = torch.empty(0)
-        self._opacity = torch.empty(0)
-        self._gaussian_features = torch.empty(0)
-        self.gaussian_features_dim = 32
-        self.max_radii2D = torch.empty(0)
-        self.xyz_gradient_accum = torch.empty(0)
-        self.denom = torch.empty(0)
-        self.optimizer = None
-        self.percent_dense = 0
-        self.spatial_lr_scale = 0
-        self.multi_res_features = None
-        self.idx_mapper = None
-        self.feature_smooth_map = None
-        self.mode = 'from_scratch' ## 'finetuning'
-        self.moving_clusters = []
-        self._clusters = {}
-        self.has_cluster_ids = False
-        self.setup_functions()
-        
-    @property
-    def get_clusters(self):
-        return self._clusters
-    
-    @property
-    def get_scaling(self):
-        return self.scaling_activation(self._scaling)
-    
-    @property
-    def get_rotation(self):
-        return self.rotation_activation(self._rotation)
-    
-    @property
-    def get_xyz(self):
-        return self._xyz
-    
-    @property
-    def get_features(self):
-        features_dc = self._features_dc
-        features_rest = self._features_rest
-        return torch.cat((features_dc, features_rest), dim=1)
-    
-    @property
-    def get_gaussian_features(self):
-        return self._gaussian_features
-        
-    @property
-    def get_opacity(self):
-        return self.opacity_activation(self._opacity)
-        
-    def get_covariance(self, scaling_modifier = 1):
-        return self.covariance_activation(self.get_scaling, scaling_modifier, self._rotation)
-
-    def oneupSHdegree(self):
-        if self.active_sh_degree < self.max_sh_degree:
-            self.active_sh_degree += 1
-             
-    def load_clusters(self, path):
-        self._clusters = torch.load(path)
-        self._clusters['id'] = torch.from_numpy(self._clusters['id']).unsqueeze(-1).float().cuda()
-        print("Load cluster indices with shape: ", self._clusters['id'].shape)
-        
-    def load_ply(self, path, spatial_lr_scale=None):
-        self.spatial_lr_scale = 5
-        plydata = PlyData.read(path)
-        self.has_cluster_ids = False
-        try:
-            cluster_ids = np.asarray(plydata.elements[0]["cls"])[..., np.newaxis]
-            self.has_cluster_ids = True
-        except:
-            print("[WARNING] No saved cluster indices found")
-            
-        xyz = np.stack((np.asarray(plydata.elements[0]["x"]),
-                        np.asarray(plydata.elements[0]["y"]),
-                        np.asarray(plydata.elements[0]["z"])),  axis=1)
-        opacities = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
-
-        features_dc = np.zeros((xyz.shape[0], 3, 1))
-        features_dc[:, 0, 0] = np.asarray(plydata.elements[0]["f_dc_0"])
-        features_dc[:, 1, 0] = np.asarray(plydata.elements[0]["f_dc_1"])
-        features_dc[:, 2, 0] = np.asarray(plydata.elements[0]["f_dc_2"])
-
-        extra_f_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("f_rest_")]
-        extra_f_names = sorted(extra_f_names, key = lambda x: int(x.split('_')[-1]))
-        assert len(extra_f_names)==3*(self.max_sh_degree + 1) ** 2 - 3
-        features_extra = np.zeros((xyz.shape[0], len(extra_f_names)))
-        for idx, attr_name in enumerate(extra_f_names):
-            features_extra[:, idx] = np.asarray(plydata.elements[0][attr_name])
-        # Reshape (P,F*SH_coeffs) to (P, F, SH_coeffs except DC)
-        features_extra = features_extra.reshape((features_extra.shape[0], 3, (self.max_sh_degree + 1) ** 2 - 1))
-
-        scale_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("scale_")]
-        scale_names = sorted(scale_names, key = lambda x: int(x.split('_')[-1]))
-        scales = np.zeros((xyz.shape[0], len(scale_names)))
-        for idx, attr_name in enumerate(scale_names):
-            scales[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        rot_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("rot")]
-        rot_names = sorted(rot_names, key = lambda x: int(x.split('_')[-1]))
-        rots = np.zeros((xyz.shape[0], len(rot_names)))
-        for idx, attr_name in enumerate(rot_names):
-            rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        gaussian_feats = np.zeros((xyz.shape[0], self.gaussian_features_dim, 1))
-        
-        try:
-            for idx in range(self.gaussian_features_dim):
-                gaussian_feats[:, idx, 0] = np.asarray(plydata.elements[0]["gaussian_feats_"+str(idx)])
-        except:
-                try:
-                    
-                    for idx in range(self.gaussian_features_dim):
-                        gaussian_feats[:, idx, 0] = np.asarray(plydata.elements[0]["obj_dc_"+str(idx)])
-                except:
-                    print(f"[WARNING] The feature dimension ({self.gaussian_features_dim}) is larger than the loaded Gaussian model's feature dimension. Assigning random values...")
-                    gaussian_feats[:, idx, 0] = np.random.randn(gaussian_feats.shape[0])
-        self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._features_dc = nn.Parameter(torch.tensor(features_dc, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
-        self._features_rest = nn.Parameter(torch.tensor(features_extra, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
-        self._opacity = nn.Parameter(torch.tensor(opacities, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._gaussian_features = nn.Parameter(torch.tensor(gaussian_feats, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
-
-        if self.has_cluster_ids:
-            self._clusters['id'] = torch.from_numpy(cluster_ids).float().cuda()
-            
-        self.active_sh_degree = self.max_sh_degree
-## ===============================================
-
-## ======= Renderer =======
-def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
-           d_xyz, d_rotation, d_scaling, is_6dof=False, ## for deformation
-           scaling_modifier = 1.0, override_color = None, 
-           mask = None, norm_gaussian_features = True, is_smooth_gaussian_features = False, smooth_K = 16):
-    """
-    Render the scene. 
-    
-    Background tensor (bg_color) must be on GPU!
-    """
- 
-    # Create zero tensor. We will use it to make pytorch return gradients of the 2D (screen-space) means
-    screenspace_points = torch.zeros_like(pc.get_xyz, dtype=pc.get_xyz.dtype, requires_grad=True, device="cuda") + 0
-    try:
-        screenspace_points.retain_grad()
-    except:
-        pass
-
-    # Set up rasterization configuration
-    tanfovx = math.tan(viewpoint_camera.FoVx * 0.5)
-    tanfovy = math.tan(viewpoint_camera.FoVy * 0.5)
-
-    raster_settings = GaussianRasterizationSettings(
-        image_height=int(viewpoint_camera.image_height),
-        image_width=int(viewpoint_camera.image_width),
-        tanfovx=tanfovx,
-        tanfovy=tanfovy,
-        bg=bg_color,
-        scale_modifier=scaling_modifier,
-        viewmatrix=viewpoint_camera.world_view_transform,
-        projmatrix=viewpoint_camera.full_proj_transform,
-        sh_degree=pc.active_sh_degree,
-        campos=viewpoint_camera.camera_center,
-        prefiltered=False,
-        debug=pipe.debug
-    )
-
-    rasterizer = GaussianRasterizer(raster_settings=raster_settings)
-
-    if is_6dof:
-        if torch.is_tensor(d_xyz) is False:
-            means3D = pc.get_xyz
-        else:
-            means3D = from_homogenous(
-                torch.bmm(d_xyz, to_homogenous(pc.get_xyz).unsqueeze(-1)).squeeze(-1))
-    else:
-        means3D = pc.get_xyz + d_xyz
-            
-    means2D = screenspace_points
-    opacity = pc.get_opacity
-
-    # If precomputed 3d covariance is provided, use it. If not, then it will be computed from
-    # scaling / rotation by the rasterizer.
-    scales = None
-    rotations = None
-    cov3D_precomp = None
-    if pipe.compute_cov3D_python:
-        cov3D_precomp = pc.get_covariance(scaling_modifier)
-    else:
-        scales = pc.get_scaling + d_scaling
-        rotations = pc.get_rotation + d_rotation
-
-    # If precomputed colors are provided, use them. Otherwise, if it is desired to precompute colors
-    # from SHs in Python, do it. If not, then SH -> RGB conversion will be done by rasterizer.
-    shs = None
-    colors_precomp = None
-    if override_color is None:
-        if pipe.convert_SHs_python:
-            shs_view = pc.get_features.transpose(1, 2).view(-1, 3, (pc.max_sh_degree+1)**2)
-            dir_pp = (pc.get_xyz - viewpoint_camera.camera_center.repeat(pc.get_features.shape[0], 1))
-            dir_pp_normalized = dir_pp/dir_pp.norm(dim=1, keepdim=True)
-            sh2rgb = eval_sh(pc.active_sh_degree, shs_view, dir_pp_normalized)
-            colors_precomp = torch.clamp_min(sh2rgb + 0.5, 0.0)
-        else:
-            shs = pc.get_features
-            # sh_objs = pc.get_point_features
-    else:
-        colors_precomp = override_color
-
-    if not is_smooth_gaussian_features:
-        sh_objs = pc.get_gaussian_features
-    else:
-        sh_objs = pc.get_smoothed_gaussian_features(K=smooth_K, dropout=0.5)
-    
-    if norm_gaussian_features:
-        sh_objs = sh_objs / (sh_objs.norm(dim=2, keepdim=True) + 1e-9)
-    
-    if mask is not None:
-        means3D = means3D[mask]
-        means2D = means2D[mask]
-        opacity = opacity[mask]
-        if colors_precomp is not None:
-            colors_precomp = colors_precomp[mask]
-        else:
-            shs = shs[mask]
-        sh_objs = sh_objs[mask]
-        scales = scales[mask]
-        rotations = rotations[mask]
-        if cov3D_precomp is not None:
-            cov3D_precomp = cov3D_precomp[mask]
-        
-    rendered_image, radii, rendered_feats, depth = rasterizer(
-        means3D = means3D,
-        means2D = means2D,
-        shs = shs,
-        sh_objs = sh_objs,
-        colors_precomp = colors_precomp,
-        opacities = opacity,
-        scales = scales,
-        rotations = rotations,
-        cov3D_precomp = cov3D_precomp)
-
-    # Those Gaussians that were frustum culled or had a radius of 0 were not visible.
-    # They will be excluded from value updates used in the splitting criteria.
-    return {"render": rendered_image,
-            "viewspace_points": screenspace_points,
-            "visibility_filter" : radii > 0,
-            "radii": radii,
-            "render_gaussian_features": rendered_feats,
-            "depth": depth}
-## ===============================================
 
 def feature3d_to_rgb(x, n_components=3):      
     X_center = x - torch.mean(x, axis=0)   # Center data
@@ -588,6 +153,7 @@ class MiniCam:
             self.world_view_transform.unsqueeze(0).bmm(self.projection_matrix.unsqueeze(0))).squeeze(0)
         self.camera_center = self.world_view_transform.inverse()[3, :3]
 
+
 class GUI:
     def __init__(self, args, dataset, pipe, iteration, opt) -> None:
         self.dataset = dataset
@@ -595,10 +161,7 @@ class GUI:
         self.iteration = iteration
 
         self.gaussians = GaussianModel(dataset.sh_degree)
-        self.gaussians.load_ply(os.path.join(self.dataset.model_path,
-                                                    "point_cloud",
-                                                    "iteration_" + str(self.iteration),
-                                                    "point_cloud.ply"))
+        self.scene = Scene(dataset, self.gaussians, load_iteration=iteration, shuffle=False)
         
         self.deform_type = opt.deform_type
         self.deform = DeformModel(dataset.is_blender, dataset.is_6dof, self.deform_type)
@@ -646,7 +209,7 @@ class GUI:
         self.mode = "Render"
         self.seed = "random"
         self.buffer_image = np.ones((self.W, self.H, 3), dtype=np.float32)
-        self.video_duration = 10.0
+        self.video_speed = 1.
         
         # For Animation
         self.animation_time = 0.
@@ -1076,6 +639,17 @@ class GUI:
                 
                 dpg.bind_item_theme("_button_save_object", theme_button)
                 
+                def callback_render_object(sender, app_data):
+                    self.render_set(self.dataset.model_path, self.dataset.is_6dof, "test", self.scene.loaded_iter, self.scene.getTestCameras(), self.gaussians, self.pipe, self.background, self.deform, self.dataset.load2gpu_on_the_fly, self.dataset.load_image_on_the_fly, self.segmented_mask)
+                    
+                dpg.add_button(
+                    label="Render Object",
+                    tag="_button_render_object",
+                    callback=callback_render_object,
+                )
+                
+                dpg.bind_item_theme("_button_render_object", theme_button)
+                
                 def callback_vis_traj_realtime():
                     self.vis_traj_realtime = not self.vis_traj_realtime
                     if not self.vis_traj_realtime:
@@ -1146,18 +720,6 @@ class GUI:
                         user_data='Animation',
                     )
                     dpg.bind_item_theme("_button_vis_animation", theme_button)
-                    
-                    def callback_duration(sender, app_data):
-                        self.video_duration = dpg.get_value('_slider_duration')
-                        
-                dpg.add_slider_int(
-                    label="Duration (sec)",
-                    default_value=self.video_duration,
-                    max_value=30,
-                    min_value=1,
-                    callback=callback_duration,
-                    tag="_slider_duration"
-                )
 
         def callback_set_mouse_loc(sender, app_data):
             if not dpg.is_item_focused("_primary_window"):
@@ -1380,7 +942,7 @@ class GUI:
                 self.update_control_point_overlay()
             fid = torch.tensor(self.animation_time).cuda().float()
         else:
-            fid = torch.remainder(torch.tensor((time.time()-self.t0) / self.video_duration).float().cuda(), 1.)
+            fid = torch.remainder(torch.tensor((time.time()-self.t0) * self.fps_of_fid).float().cuda() / len(self.scene.getTestCameras()) * self.video_speed, 1.)
 
         cur_cam = MiniCam(
             self.cam.pose,
@@ -1650,7 +1212,7 @@ if __name__ == "__main__":
     args = get_combined_args(parser)
     print("Rendering " + args.model_path)
     safe_state(args.quiet)
-    
+
     gui = GUI(args=args, dataset=model.extract(args), pipe=pipeline.extract(args), iteration=args.iteration, opt=op.extract(args))
 
     gui.render()
