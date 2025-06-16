@@ -157,6 +157,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations):
     gaussians.training_setup(opt)
     if latest_iter > 0:
         deform.load_weights(dataset.model_path, iteration=latest_iter)
+    # Always re-initialize max_radii2D after loading
+    gaussians.max_radii2D = torch.zeros((gaussians.get_xyz.shape[0]), device=gaussians.get_xyz.device)
 
     bg = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg, dtype=torch.float32, device="cuda")
@@ -297,6 +299,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations):
                 progress_bar.close()
 
             # Keep track of max radii in image-space for pruning
+            # Defensive: ensure max_radii2D is correct shape and device
+            if gaussians.max_radii2D.shape[0] != gaussians.get_xyz.shape[0]:
+                gaussians.max_radii2D = torch.zeros((gaussians.get_xyz.shape[0]), device=gaussians.get_xyz.device)
             visibility_filter = visibility_filter.to(gaussians.max_radii2D.device)
             gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
             
