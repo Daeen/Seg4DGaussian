@@ -9,4 +9,7 @@
 # CUDA_VISIBLE_DEVICES=4 python extract_masks.py --img_path data/HyperNeRF/split-cookie/rgb/2x --output data/NeRF-DS/split-cookie --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 2
 # CUDA_VISIBLE_DEVICES=4 python extract_masks.py --img_path data/HyperNeRF/torchocolate/rgb/2x --output data/NeRF-DS/torchocolate --iou_th 0.88 --stability_score_th 0.95 --downsample_mask 2
 
-CUDA_VISIBLE_DEVICES=3 python train_4dgs.py --model_path "/node_data/urp25sp_daeen/SADG-SegmentAnyDynamicGaussian/out"
+
+#### Training Script ####
+
+CUDA_VISIBLE_DEVICES=3 python train_4dgs.py --model_path "/node_data/urp25sp_daeen/SADG-SegmentAnyDynamicGaussian/output"
