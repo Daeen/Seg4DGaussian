@@ -49,23 +49,7 @@ class Scene:
 
         self.train_cameras = {}
         self.test_cameras = {}
-        if os.path.exists(os.path.join(args.source_path, "sparse")):
-            print("[Warning] Assuming loaing from pretrained 3DGS on Mip-NeRF 360 scene...")
-            scene_info = sceneLoadTypeCallbacks["Colmap"](path=args.source_path, 
-                                                          images=args.images, 
-                                                          eval=args.eval, 
-                                                          load_image_on_the_fly=args.load_image_on_the_fly, 
-                                                          load_mask_on_the_fly=args.load_mask_on_the_fly)
-        elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
-            print("Found transforms_train.json file, assuming Multi-View data set!")
-            scene_info = sceneLoadTypeCallbacks["Blender"](path=args.source_path, 
-                                                           white_background=args.white_background, 
-                                                           eval=args.eval, 
-                                                           load_image_on_the_fly=args.load_image_on_the_fly, 
-                                                           load_mask_on_the_fly=args.load_mask_on_the_fly, 
-                                                           end_frame=args.end_frame
-                                                           )
-        elif os.path.exists(os.path.join(args.source_path, "dataset.json")):
+        if os.path.exists(os.path.join(args.source_path, "dataset.json")):
             print("Found dataset.json file, assuming Nerfies data set!")
             scene_info = sceneLoadTypeCallbacks["nerfies"](path=args.source_path, 
                                                            eval=args.eval, 

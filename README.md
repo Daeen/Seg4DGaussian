@@ -1,20 +1,3 @@
-# SADG: Segment Any Dynamic Gaussians Without Object Trackers
-
-## [Project page](https://yunjinli.github.io/project-sadg/) | [Paper](https://arxiv.org/abs/2411.19290)
-
-## News
-
-- 2025/05/11: We released the code for rendering and evaluation. We also updated the scripts for downloading / processing datasets. For more details, please check [documentation](./docs/).
-- 2025/01/20: We released the [standalone GUI](./gui_standalone.py). See [GUI Tutorial](./docs/gui.md) for details.
-- 2024/11/24: We released the [website](https://yunjinli.github.io/project-sadg/) for SADG
-- 2024/11/23: We plan to release the rest of the source code and also the Mask-Benchmarks later. If you would like to compare your method against SADG now, please contact the first author via email (yunjin.li@tum.de).
-
-## Introduction
-
-We introduce SADG, Segment Any Dynamic Gaussian Without Object Trackers, a novel approach that combines dynamic Gaussian Splatting representation and semantic information without reliance on object IDs. We propose to learn semantically-aware features by leveraging masks generated from the Segment Anything Model (SAM) and utilizing our novel contrastive learning objective based on hard pixel mining. The learned Gaussian features can be effectively clustered without further post-processing. This enables fast computation for further object-level editing, such as object removal, composition, and style transfer by manipulating the Gaussians in the scene. Due to the lack of consistent evaluation protocol, we extend several dynamic novel-view datasets with segmentation benchmarks that allow testing of learned feature fields from unseen viewpoints. We evaluate SADG on proposed benchmarks and demonstrate the superior performance of our approach in segmenting objects within dynamic scenes along with its effectiveness for further downstream editing tasks.
-
-![teaser](assets/teaser.jpg)
-
 ## Installation
 
 ```
@@ -54,19 +37,11 @@ See [here](./docs/prepare_dataset.md)
 
 ## Train
 
-~~See [here](./docs/train.md)~~ (TBA)
-
-## GUI
-
-See [here](./docs/gui.md)
+~~See [here](./mask_script.sh)
 
 ## Render
 
 See [here](./docs/render.md)
-
-## Scene Editing Application
-
-~~See [here](./docs/editing.md)~~ (TBA)
 
 ## Evaluation on our Mask-Benchmarks
 

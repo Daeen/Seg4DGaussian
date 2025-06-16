@@ -56,7 +56,7 @@ class ModelParams(ParamGroup):
     def __init__(self, parser, sentinel=False):
         # Gaussian Splatting
         self.sh_degree = 3
-        self._source_path = ""
+        self._source_path = "/node_data/urp25sp_daeen/SADG-SegmentAnyDynamicGaussian/data/HyperNeRF/americano"
         self._model_path = ""
         self._images = "images"
         self._resolution = -1
@@ -125,7 +125,7 @@ class OptimizationParams(ParamGroup):
         self.num_sampled_pixels = 5000
         self.smooth_K = 16
         self.rfn = 1.
-        self.num_sampled_masks = 50
+        self.num_sampled_masks = 25
         
         self.hard_positive_th = 0.75
         self.hard_negative_th = 0.5
