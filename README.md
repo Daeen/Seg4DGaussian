@@ -47,7 +47,7 @@ See [here](./docs/render.md)
 
 See [here](./docs/evaluation.md)
 
-## BibTex
+## BibTex and
 
 ```
 @article{li2024sadg,
@@ -55,58 +55,5 @@ See [here](./docs/evaluation.md)
     author={Li, Yun-Jin and Gladkova, Mariia and Xia, Yan and Cremers, Daniel},
     journal={arXiv preprint arXiv:2411.19290},
     year={2024}
-}
-```
-
-## Acknowledgement
-
-We appreciate all the authors from [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), [Deformable 3D Gaussians](https://github.com/ingra14m/Deformable-3D-Gaussians), [SC-GS](https://github.com/yihua7/SC-GS), [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping), [SAGA](https://github.com/Jumpat/SegAnyGAussians) for sharing their amazing works to promote further research in this area. Consider also citing their paper.
-
-```
-@Article{kerbl3Dgaussians,
-      author       = {Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
-      title        = {3D Gaussian Splatting for Real-Time Radiance Field Rendering},
-      journal      = {ACM Transactions on Graphics},
-      number       = {4},
-      volume       = {42},
-      month        = {July},
-      year         = {2023},
-      url          = {https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/}
-}
-```
-
-```
-@article{yang2023deformable3dgs,
-    title={Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction},
-    author={Yang, Ziyi and Gao, Xinyu and Zhou, Wen and Jiao, Shaohui and Zhang, Yuqing and Jin, Xiaogang},
-    journal={arXiv preprint arXiv:2309.13101},
-    year={2023}
-}
-```
-
-```
-@article{huang2023sc,
-    title={SC-GS: Sparse-Controlled Gaussian Splatting for Editable Dynamic Scenes},
-    author={Huang, Yi-Hua and Sun, Yang-Tian and Yang, Ziyi and Lyu, Xiaoyang and Cao, Yan-Pei and Qi, Xiaojuan},
-    journal={arXiv preprint arXiv:2312.14937},
-    year={2023}
-}
-```
-
-```
-@inproceedings{gaussian_grouping,
-    title={Gaussian Grouping: Segment and Edit Anything in 3D Scenes},
-    author={Ye, Mingqiao and Danelljan, Martin and Yu, Fisher and Ke, Lei},
-    booktitle={ECCV},
-    year={2024}
-}
-```
-
-```
-@article{cen2023saga,
-      title={Segment Any 3D Gaussians},
-      author={Jiazhong Cen and Jiemin Fang and Chen Yang and Lingxi Xie and Xiaopeng Zhang and Wei Shen and Qi Tian},
-      year={2023},
-      journal={arXiv preprint arXiv:2312.00860},
 }
 ```
