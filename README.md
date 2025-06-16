@@ -2,8 +2,8 @@
 
 ```
 ## Setup the environment
-git clone https://github.com/yunjinli/SADG-SegmentAnyDynamicGaussian.git
-cd SADG
+git clone https://github.com/Daeen/Seg4DGaussian.git
+cd Seg4DGaussian
 git submodule update --init --recursive
 conda create -n SADG python=3.8 -y
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
