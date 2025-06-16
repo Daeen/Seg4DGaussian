@@ -56,7 +56,7 @@ class ModelParams(ParamGroup):
     def __init__(self, parser, sentinel=False):
         # Gaussian Splatting
         self.sh_degree = 3
-        self._source_path = "/node_data/urp25sp_daeen/SADG-SegmentAnyDynamicGaussian/data/HyperNeRF/americano"
+        self._source_path = "/node_data/urp25sp_daeen/Seg4DGaussian/data/HyperNeRF/americano"
         self._model_path = ""
         self._images = "images"
         self._resolution = -1

@@ -12,4 +12,4 @@
 
 #### Training Script ####
 
-CUDA_VISIBLE_DEVICES=3 python train_4dgs.py --model_path "/node_data/urp25sp_daeen/SADG-SegmentAnyDynamicGaussian/output"
+CUDA_VISIBLE_DEVICES=3 python train_4dgs.py --model_path "/node_data/urp25sp_daeen/Seg4DGaussian/out"
